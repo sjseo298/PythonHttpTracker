@@ -1,0 +1,205 @@
+# Web Crawler Configuration File
+# This is the main configuration file for the Python Web Crawler
+
+# ============================================================================
+# WEBSITE CONFIGURATION
+# ============================================================================
+website:
+  # The main domain of the website (used for URL validation)
+  base_domain: "your-site.com"
+  
+  # The base URL for the website
+  base_url: "https://your-site.com"
+  
+  # Starting URL for the crawl (where the crawler begins)
+  start_url: "https://your-site.com/docs"
+  
+  # URL patterns that are considered valid for crawling
+  # The crawler will only follow links that match these patterns
+  valid_url_patterns:
+    - "/docs/"
+    - "/wiki/"
+    - "/spaces/"
+  
+  # URL patterns to exclude from crawling
+  # Links matching these patterns will be ignored
+  exclude_patterns:
+    - "/admin"
+    - "/login"
+    - "/logout"
+    - "action="
+    - "?delete"
+    - "/api/"
+
+# ============================================================================
+# CRAWLING PARAMETERS
+# ============================================================================
+crawling:
+  # Maximum depth to crawl (0 = only start URL, 1 = start + direct links, etc.)
+  max_depth: 2
+  
+  # Space or section identifier (used for organizing output)
+  space_name: "DOCS"
+  
+  # Number of parallel workers for downloading
+  # Higher values = faster downloads but more server load
+  max_workers: 8
+  
+  # Delay between requests in seconds (be respectful to the server)
+  request_delay: 0.5
+  
+  # Timeout for individual requests in seconds
+  request_timeout: 30
+  
+  # Maximum retries for failed requests
+  max_retries: 3
+
+# ============================================================================
+# OUTPUT CONFIGURATION
+# ============================================================================
+output:
+  # Output format: "html" or "markdown"
+  format: "markdown"
+  
+  # Directory where downloaded content will be saved
+  output_dir: "downloaded_content"
+  
+  # Directory for shared resources (CSS, images, etc.)
+  resources_dir: "shared_resources"
+  
+  # Whether to create a separate directory for each space/section
+  separate_spaces: true
+  
+  # Whether to preserve the original directory structure
+  preserve_structure: true
+
+# ============================================================================
+# FILES CONFIGURATION
+# ============================================================================
+files:
+  # Path to the cookies file (for authentication)
+  cookies_file: "config/cookies.txt"
+  
+  # Path to save/load download progress
+  progress_file: "download_progress.json"
+  
+  # Whether to resume previous downloads
+  resume_downloads: true
+
+# ============================================================================
+# CONTENT PROCESSING
+# ============================================================================
+content:
+  # Whether to remove JavaScript from HTML
+  remove_javascript: true
+  
+  # Whether to clean HTML (remove unnecessary elements)
+  clean_html: true
+  
+  # Elements to remove from HTML (for cleaning)
+  remove_elements:
+    - "script"
+    - "noscript"
+    - "iframe[src*='ads']"
+    - ".advertisement"
+    - "#sidebar"
+  
+  # Whether to download and save resources (CSS, images, etc.)
+  download_resources: true
+  
+  # Types of resources to download
+  resource_types:
+    - "css"
+    - "js"
+    - "png"
+    - "jpg"
+    - "jpeg"
+    - "gif"
+    - "svg"
+    - "ico"
+    - "woff"
+    - "woff2"
+    - "ttf"
+
+# ============================================================================
+# LOGGING CONFIGURATION
+# ============================================================================
+logging:
+  # Whether to enable verbose logging
+  verbose: false
+  
+  # Whether to log resource downloads
+  log_resources: false
+  
+  # Whether to log URL processing
+  log_urls: true
+  
+  # Log file path (optional, if you want to save logs to file)
+  # log_file: "crawler.log"
+
+# ============================================================================
+# ADVANCED CONFIGURATION
+# ============================================================================
+advanced:
+  # User agent string for requests
+  user_agent: "Python-WebCrawler/3.0"
+  
+  # Additional headers to send with requests
+  headers:
+    Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+    Accept-Language: "en-US,en;q=0.5"
+    Accept-Encoding: "gzip, deflate"
+    Connection: "keep-alive"
+  
+  # Whether to verify SSL certificates
+  verify_ssl: true
+  
+  # Whether to follow redirects
+  allow_redirects: true
+  
+  # Maximum size for individual files (in bytes, 0 = no limit)
+  max_file_size: 0
+  
+  # CDN domains to consider as resources
+  cdn_domains:
+    - "cdn.jsdelivr.net"
+    - "cdnjs.cloudflare.com"
+    - "ajax.googleapis.com"
+    - "fonts.googleapis.com"
+    - "fonts.gstatic.com"
+
+# ============================================================================
+# EXAMPLES OF COMMON CONFIGURATIONS
+# ============================================================================
+
+# Example 1: Confluence Site
+# website:
+#   base_domain: "company.atlassian.net"
+#   base_url: "https://company.atlassian.net"
+#   start_url: "https://company.atlassian.net/wiki/spaces/DOCS/overview"
+#   valid_url_patterns:
+#     - "/wiki/spaces/DOCS/"
+#   exclude_patterns:
+#     - "action="
+#     - "/admin"
+
+# Example 2: Documentation Site
+# website:
+#   base_domain: "docs.example.com"
+#   base_url: "https://docs.example.com"
+#   start_url: "https://docs.example.com/v1/"
+#   valid_url_patterns:
+#     - "/v1/"
+#   exclude_patterns:
+#     - "/api/"
+
+# Example 3: GitBook or Similar
+# website:
+#   base_domain: "company.gitbook.io"
+#   base_url: "https://company.gitbook.io"
+#   start_url: "https://company.gitbook.io/docs"
+#   valid_url_patterns:
+#     - "/docs"
+#   exclude_patterns:
+#     - "/edit"
+#     - "/comments"

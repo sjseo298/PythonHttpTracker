@@ -1,0 +1,21 @@
+# Cookie Template File
+# Replace the values below with your actual cookies from the target website
+#
+# Instructions:
+# 1. Open your browser and navigate to the target website
+# 2. Login to the website if authentication is required
+# 3. Open Developer Tools (F12) and go to the Network tab
+# 4. Refresh the page and copy the Cookie header from any request
+# 5. Paste the cookie string below (one line, no line breaks)
+# 6. Rename this file to cookies.txt
+#
+# Format: cookie1=value1; cookie2=value2; cookie3=value3
+#
+# Example for Atlassian/Confluence sites:
+# atl.xsrf.token=EXAMPLE_TOKEN; JSESSIONID=EXAMPLE_SESSION; tenant.session.token=EXAMPLE_JWT_TOKEN
+#
+# Example for other sites:
+# sessionid=EXAMPLE_SESSION; csrftoken=EXAMPLE_CSRF; auth_token=EXAMPLE_AUTH
+
+# Your cookies go here (remove this comment and add your actual cookies):
+# REPLACE_WITH_YOUR_ACTUAL_COOKIES
