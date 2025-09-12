@@ -1,5 +1,9 @@
 # Python Web Crawler
 
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Python](https://img.shields.io/badge/python-3.8+-green.svg)
+![License](https://img.shields.io/badge/license-MIT-yellow.svg)
+
 A high-performance, configurable web crawler for mirroring websites with parallel processing, intelligent link conversion, and multiple output formats.
 
 ## 🚀 Features
@@ -328,10 +332,19 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🏷️ Version History
 
-- **v1.0.0**: Initial release with basic crawling
-- **v2.0.0**: Added parallel processing and YAML configuration
-- **v2.1.0**: Added Markdown support and resource management
-- **v3.0.0**: Complete rewrite with universal web support
+- **v1.0.0** (December 2024): Initial release
+  - ✨ High-performance web crawler with parallel processing
+  - 🌐 Universal web crawling support (Confluence, documentation sites, wikis)
+  - ⚡ Multi-threaded downloads with configurable workers
+  - 📝 Multiple output formats (HTML and Markdown)
+  - 🔗 Smart link conversion to local references
+  - 🎨 Automatic resource management (CSS, images, assets)
+  - 📊 Progress tracking and resume functionality
+  - 🛡️ Thread-safe architecture with advanced locking
+  - ⚙️ YAML configuration with CLI override support
+  - 🍪 Cookie authentication for protected sites
+  - 🧹 Integrated HTML cleaning and JavaScript removal
+  - 📋 Interactive setup wizard
 
 ---
 

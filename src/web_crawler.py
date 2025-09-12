@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """
+Python Web Crawler v1.0.0
 Recursive web crawler that respects depth limits and converts links to local references
+
+Author: sjseo298
+Repository: https://github.com/sjseo298/PythonHttpTracker
+License: MIT
 """
 import os
 import re
