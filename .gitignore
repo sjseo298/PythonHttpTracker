@@ -50,6 +50,15 @@ download_progress.json
 downloaded_content/
 !downloaded_content/.gitkeep
 
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+crawler_data.db
+crawler_data.db-journal
+crawler_data.db-wal
+crawler_data.db-shm
+
 # Logs
 *.log
 logs/

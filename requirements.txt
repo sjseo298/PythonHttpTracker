@@ -1,0 +1,15 @@
+# Python Web Crawler Dependencies
+# Core web scraping and HTTP functionality
+requests>=2.25.0
+
+# HTML parsing and content extraction
+beautifulsoup4>=4.9.0
+
+# Markdown conversion
+markdownify>=0.11.0
+
+# YAML configuration file support
+PyYAML>=6.0
+
+# Rich console interface for interactive progress tracking
+rich>=13.0.0

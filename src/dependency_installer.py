@@ -16,7 +16,8 @@ class DependencyInstaller:
         'requests': 'requests>=2.25.0',
         'bs4': 'beautifulsoup4>=4.9.0',
         'markdownify': 'markdownify>=0.11.0',
-        'yaml': 'PyYAML>=6.0'
+        'yaml': 'PyYAML>=6.0',
+        'rich': 'rich>=13.0.0'
     }
     
     def __init__(self, quiet: bool = False):
@@ -39,9 +40,17 @@ class DependencyInstaller:
                 print(f"📦 Installing {package_spec}...")
             
             # Use subprocess to install via pip
-            result = subprocess.run([
-                sys.executable, '-m', 'pip', 'install', package_spec
-            ], capture_output=True, text=True, check=False)
+            cmd = [sys.executable, '-m', 'pip', 'install', package_spec]
+            
+            # Check if we're in an externally managed environment
+            result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+            
+            # If externally managed environment error, try with --break-system-packages
+            if result.returncode != 0 and "externally-managed-environment" in result.stderr:
+                if not self.quiet:
+                    print(f"⚠️ Externally managed environment detected, using --break-system-packages")
+                cmd.append('--break-system-packages')
+                result = subprocess.run(cmd, capture_output=True, text=True, check=False)
             
             if result.returncode == 0:
                 if not self.quiet:
@@ -63,9 +72,15 @@ class DependencyInstaller:
             if not self.quiet:
                 print("🔄 Upgrading pip...")
             
-            result = subprocess.run([
-                sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'
-            ], capture_output=True, text=True, check=False)
+            cmd = [sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip']
+            result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+            
+            # If externally managed environment error, try with --break-system-packages
+            if result.returncode != 0 and "externally-managed-environment" in result.stderr:
+                if not self.quiet:
+                    print("⚠️ Externally managed environment detected for pip upgrade")
+                cmd.append('--break-system-packages')
+                result = subprocess.run(cmd, capture_output=True, text=True, check=False)
             
             return result.returncode == 0
         except Exception:

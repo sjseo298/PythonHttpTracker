@@ -60,7 +60,7 @@ check_python() {
 check_dependencies() {
     print_info "Checking Python dependencies..."
     
-    packages=("requests" "beautifulsoup4" "markdownify" "pyyaml")
+    packages=("requests" "beautifulsoup4" "markdownify" "pyyaml" "rich")
     
     # Check if virtual environment exists
     if [ ! -d ".venv" ]; then
