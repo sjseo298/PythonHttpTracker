@@ -74,16 +74,33 @@ output:
   preserve_structure: true
 
 # ============================================================================
+# DATABASE CONFIGURATION
+# ============================================================================
+database:
+  # SQLite database file path for storing crawl progress
+  db_path: "crawler_data.db"
+  
+  # Whether to automatically migrate from JSON progress files
+  auto_migrate_json: true
+  
+  # JSON backup settings (for migration)
+  json_backup_dir: "json_backups"
+  
+  # Keep JSON backup after migration
+  keep_json_backup: true
+  
+  # Database performance settings
+  enable_wal_mode: true  # Write-Ahead Logging for better concurrency
+  cache_size: 10000      # SQLite cache size in pages
+
+# ============================================================================
 # FILES CONFIGURATION
 # ============================================================================
 files:
   # Path to the cookies file (for authentication)
   cookies_file: "config/cookies.txt"
   
-  # Path to save/load download progress
-  progress_file: "download_progress.json"
-  
-  # Whether to resume previous downloads
+  # Whether to resume previous downloads (now handled by database)
   resume_downloads: true
 
 # ============================================================================
