@@ -32,18 +32,54 @@ python src/web_crawler.py
 
 ## 🚀 Features
 
+### Core Features
+
 - **🌐 Universal Web Crawling**: Works with any website (Confluence, documentation sites, wikis, etc.)
-- **⚡ Parallel Processing**: Configurable multi-threaded downloads for maximum speed
+- **⚡ Parallel Processing**: Configurable multi-threaded downloads for maximum speed (8+ workers)
 - **📝 Multiple Output Formats**: HTML and Markdown with intelligent content extraction
 - **🔗 Smart Link Conversion**: Converts web links to local file references automatically
 - **🎨 Resource Management**: Downloads and organizes CSS, images, and other assets
-- **� SQLite Database**: Robust progress tracking with atomic operations and concurrent access
-- **📊 Advanced Reporting**: Comprehensive statistics and progress tracking
+- **🗄️ SQLite Database**: Robust progress tracking with atomic operations and concurrent access
+- **📊 Advanced Reporting**: Comprehensive statistics and progress tracking with Rich UI
 - **🔄 Auto-Migration**: Seamless migration from JSON to SQLite format
 - **📦 Auto-Dependencies**: Automatic package installation without user intervention
 - **🛡️ Thread-Safe**: Advanced locking mechanisms prevent race conditions
 - **⚙️ Highly Configurable**: YAML configuration files + command-line interface
 - **🍪 Cookie Authentication**: Support for authenticated sessions
+
+### 🛡️ Advanced Duplicate Prevention
+
+The crawler implements **6 layers of protection** against duplicate downloads:
+
+1. **In-Memory Verification**: Fast checks using `downloaded_urls` set
+2. **Active Download Tracking**: Prevents concurrent downloads of the same URL
+3. **URL Normalization**: Removes fragments (`#section`) and standardizes format
+   - `https://example.com/page#section1` → `https://example.com/page`
+   - `https://example.com/page#section2` → `https://example.com/page`
+4. **Pre-Queue Filtering**: Verifies URLs before adding to download queue
+5. **Database Idempotency**: SQLite `INSERT OR REPLACE` prevents duplicate records
+6. **Unique Attachment IDs**: Each attachment uses `{confluence_id}_{filename}` format
+
+**Result**: Zero duplicate downloads, even with:
+- Multiple links to the same page
+- Interrupted and resumed sessions
+- Concurrent multi-threaded execution
+- Complex Confluence space hierarchies
+
+### 🌐 Confluence Space Crawling
+
+Special handling for Confluence spaces:
+
+- **Automatic Space Detection**: Recognizes `/wiki/spaces/{KEY}/overview` URLs
+- **Complete Space Discovery**: Uses Confluence Search API (CQL) to find ALL pages
+- **Pagination Support**: Handles spaces with 100+ pages automatically
+- **Intelligent Depth Reset**: Space index doesn't consume depth budget
+- **URL Correction**: Automatically adds `/wiki` prefix to Confluence URLs
+
+**Example**: Starting from space overview crawls entire space:
+```bash
+python src/web_crawler.py "https://company.atlassian.net/wiki/spaces/DOCS/overview" 2 DOCS markdown 8
+```
 
 ## 🏗️ Architecture
 
