@@ -255,14 +255,39 @@ class BaseCrawler(ABC):
         # Initialize progress tracker
         self.progress_tracker.initialize_progress_bar(initial_total=1)
         
-        # Add start URL to queue
-        self.download_queue.append((self.start_url, 0))
-        self.progress_tracker.update_stat('urls_queued', value=1)
-        
-        # Add to discovered URLs in database
-        normalized_start = self.normalize_url(self.start_url)
-        self.db.add_discovered_url(self.start_url, normalized_start, 0)
-        self.progress_tracker.update_stat('urls_discovered')
+        # Load pending URLs from database (for resume capability)
+        pending_urls = self.db.get_pending_urls()
+        if pending_urls:
+            print(f"🔄 Found {len(pending_urls)} pending URLs from previous session")
+            
+            # Load stats from database
+            total_discovered = self.db.get_total_discovered_urls()
+            total_downloaded = self.db.get_total_downloaded_documents()
+            total_failed = self.db.get_total_failed_urls()
+            
+            print(f"📊 Database progress: {total_downloaded} downloaded, {total_failed} failed, {len(pending_urls)} pending")
+            
+            # Update progress tracker with existing stats
+            self.progress_tracker.update_stat('urls_discovered', value=total_discovered)
+            self.progress_tracker.update_stat('urls_downloaded', value=total_downloaded)
+            self.progress_tracker.update_stat('urls_failed', value=total_failed)
+            
+            # Add pending URLs to queue
+            for url, depth in pending_urls:
+                self.download_queue.append((url, depth))
+            self.progress_tracker.update_stat('urls_queued', value=len(pending_urls))
+            
+            # Force progress bar update with correct totals
+            self.progress_tracker.update_progress_bar()
+        else:
+            # Add start URL to queue only if no pending URLs
+            self.download_queue.append((self.start_url, 0))
+            self.progress_tracker.update_stat('urls_queued', value=1)
+            
+            # Add to discovered URLs in database
+            normalized_start = self.normalize_url(self.start_url)
+            self.db.add_discovered_url(self.start_url, normalized_start, 0)
+            self.progress_tracker.update_stat('urls_discovered')
         
         # Process queue with thread pool and live progress display
         with Live(self.progress_tracker.create_progress_panel(), refresh_per_second=2) as live:

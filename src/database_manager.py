@@ -264,9 +264,9 @@ class DatabaseManager:
             try:
                 cursor = conn.cursor()
                 query = """
-                    SELECT clean_url, depth FROM discovered_urls 
+                    SELECT url, depth FROM discovered_urls 
                     WHERE status = 'pending' 
-                    ORDER BY depth DESC, discovered_at ASC
+                    ORDER BY depth ASC, discovered_at ASC
                 """
                 if limit:
                     query += f" LIMIT {limit}"
@@ -276,6 +276,48 @@ class DatabaseManager:
             except Exception as e:
                 print(f"❌ Error getting pending URLs: {e}")
                 return []
+            finally:
+                conn.close()
+    
+    def get_total_discovered_urls(self) -> int:
+        """Get total count of discovered URLs"""
+        with self.db_lock:
+            conn = sqlite3.connect(self.db_path)
+            try:
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) FROM discovered_urls")
+                return cursor.fetchone()[0]
+            except Exception as e:
+                print(f"❌ Error getting total discovered URLs: {e}")
+                return 0
+            finally:
+                conn.close()
+    
+    def get_total_downloaded_documents(self) -> int:
+        """Get total count of successfully downloaded documents"""
+        with self.db_lock:
+            conn = sqlite3.connect(self.db_path)
+            try:
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) FROM discovered_urls WHERE status = 'completed'")
+                return cursor.fetchone()[0]
+            except Exception as e:
+                print(f"❌ Error getting total downloaded documents: {e}")
+                return 0
+            finally:
+                conn.close()
+    
+    def get_total_failed_urls(self) -> int:
+        """Get total count of failed URLs"""
+        with self.db_lock:
+            conn = sqlite3.connect(self.db_path)
+            try:
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) FROM discovered_urls WHERE status = 'failed'")
+                return cursor.fetchone()[0]
+            except Exception as e:
+                print(f"❌ Error getting total failed URLs: {e}")
+                return 0
             finally:
                 conn.close()
     
