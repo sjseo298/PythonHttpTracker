@@ -121,6 +121,90 @@ class DatabaseManager:
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_crawler_stats_session_id ON crawler_stats(session_id)")
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_crawler_stats_start_time ON crawler_stats(start_time)")
                 
+                # Table for Confluence-specific metadata
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS confluence_metadata (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        url TEXT UNIQUE NOT NULL,
+                        page_id TEXT NOT NULL,
+                        ari TEXT,
+                        title TEXT,
+                        space_key TEXT,
+                        space_name TEXT,
+                        content_type TEXT,
+                        status TEXT,
+                        
+                        -- Version info
+                        version_number INTEGER,
+                        version_when TIMESTAMP,
+                        version_by TEXT,
+                        version_by_email TEXT,
+                        version_by_account TEXT,
+                        version_message TEXT,
+                        version_minor_edit BOOLEAN,
+                        
+                        -- History: Creation
+                        created_when TIMESTAMP,
+                        created_by TEXT,
+                        created_by_email TEXT,
+                        created_by_account TEXT,
+                        
+                        -- History: Last Update
+                        updated_when TIMESTAMP,
+                        updated_by TEXT,
+                        updated_by_email TEXT,
+                        updated_by_account TEXT,
+                        
+                        -- Links
+                        web_link TEXT,
+                        rest_link TEXT,
+                        tiny_link TEXT,
+                        
+                        -- Derived stats
+                        days_since_update INTEGER,
+                        has_attachments BOOLEAN DEFAULT FALSE,
+                        attachment_count INTEGER DEFAULT 0,
+                        
+                        -- Metadata
+                        downloaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        
+                        FOREIGN KEY (url) REFERENCES downloaded_documents(url)
+                    )
+                """)
+                
+                # Create indexes for confluence_metadata
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_confluence_metadata_page_id ON confluence_metadata(page_id)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_confluence_metadata_space_key ON confluence_metadata(space_key)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_confluence_metadata_title ON confluence_metadata(title)")
+                
+                # Table for Confluence attachments
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS confluence_attachments (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        page_url TEXT NOT NULL,
+                        page_id TEXT NOT NULL,
+                        attachment_id TEXT NOT NULL,
+                        title TEXT,
+                        media_type TEXT,
+                        file_size_api INTEGER,
+                        file_size_local INTEGER,
+                        version INTEGER,
+                        created_when TIMESTAMP,
+                        created_by TEXT,
+                        comment TEXT,
+                        download_url TEXT,
+                        local_path TEXT,
+                        downloaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        
+                        FOREIGN KEY (page_url) REFERENCES confluence_metadata(url)
+                    )
+                """)
+                
+                # Create indexes for confluence_attachments
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_confluence_attachments_page_url ON confluence_attachments(page_url)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_confluence_attachments_page_id ON confluence_attachments(page_id)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_confluence_attachments_attachment_id ON confluence_attachments(attachment_id)")
+                
                 conn.commit()
                 print("✅ Database initialized successfully")
                 
@@ -509,6 +593,209 @@ class DatabaseManager:
                 print(f"❌ Error resetting progress: {e}")
                 conn.rollback()
                 return False
+            finally:
+                conn.close()
+
+    # Confluence-specific methods
+    
+    def save_confluence_metadata(self, url: str, metadata: dict) -> bool:
+        """
+        Save Confluence page metadata to database
+        
+        Args:
+            url: Page URL
+            metadata: Dictionary with Confluence metadata
+            
+        Returns:
+            True if saved successfully
+        """
+        with self.db_lock:
+            conn = sqlite3.connect(self.db_path)
+            try:
+                cursor = conn.cursor()
+                
+                cursor.execute("""
+                    INSERT OR REPLACE INTO confluence_metadata (
+                        url, page_id, ari, title, space_key, space_name, content_type, status,
+                        version_number, version_when, version_by, version_by_email, 
+                        version_by_account, version_message, version_minor_edit,
+                        created_when, created_by, created_by_email, created_by_account,
+                        updated_when, updated_by, updated_by_email, updated_by_account,
+                        web_link, rest_link, tiny_link,
+                        days_since_update, has_attachments, attachment_count
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    url,
+                    metadata.get('id', ''),
+                    metadata.get('ari', ''),
+                    metadata.get('title', ''),
+                    metadata.get('space_key', ''),
+                    metadata.get('space_name', ''),
+                    metadata.get('type', ''),
+                    metadata.get('status', ''),
+                    metadata.get('version', {}).get('number'),
+                    metadata.get('version', {}).get('when'),
+                    metadata.get('version', {}).get('by'),
+                    metadata.get('version', {}).get('by_email'),
+                    metadata.get('version', {}).get('by_account'),
+                    metadata.get('version', {}).get('message'),
+                    metadata.get('version', {}).get('minor_edit', False),
+                    metadata.get('history', {}).get('created', {}).get('when'),
+                    metadata.get('history', {}).get('created', {}).get('by'),
+                    metadata.get('history', {}).get('created', {}).get('by_email'),
+                    metadata.get('history', {}).get('created', {}).get('by_account'),
+                    metadata.get('history', {}).get('updated', {}).get('when'),
+                    metadata.get('history', {}).get('updated', {}).get('by'),
+                    metadata.get('history', {}).get('updated', {}).get('by_email'),
+                    metadata.get('history', {}).get('updated', {}).get('by_account'),
+                    metadata.get('links', {}).get('web'),
+                    metadata.get('links', {}).get('rest'),
+                    metadata.get('links', {}).get('tiny'),
+                    metadata.get('days_since_update'),
+                    metadata.get('has_attachments', False),
+                    metadata.get('attachment_count', 0)
+                ))
+                
+                conn.commit()
+                return True
+            except Exception as e:
+                print(f"❌ Error saving Confluence metadata for {url}: {e}")
+                conn.rollback()
+                return False
+            finally:
+                conn.close()
+    
+    def save_confluence_attachments(self, page_url: str, page_id: str, attachments: list) -> bool:
+        """
+        Save Confluence page attachments to database
+        
+        Args:
+            page_url: Parent page URL
+            page_id: Parent page ID
+            attachments: List of attachment dictionaries
+            
+        Returns:
+            True if saved successfully
+        """
+        if not attachments:
+            return True
+        
+        with self.db_lock:
+            conn = sqlite3.connect(self.db_path)
+            try:
+                cursor = conn.cursor()
+                
+                for attachment in attachments:
+                    cursor.execute("""
+                        INSERT OR REPLACE INTO confluence_attachments (
+                            page_url, page_id, attachment_id, title, media_type,
+                            file_size_api, file_size_local, version,
+                            created_when, created_by, comment,
+                            download_url, local_path
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (
+                        page_url,
+                        page_id,
+                        attachment.get('id', ''),
+                        attachment.get('title', ''),
+                        attachment.get('media_type', ''),
+                        attachment.get('file_size', 0),
+                        attachment.get('file_size_local', 0),
+                        attachment.get('version', 1),
+                        attachment.get('created', ''),
+                        attachment.get('created_by', ''),
+                        attachment.get('comment', ''),
+                        attachment.get('download_url', ''),
+                        attachment.get('local_path', '')
+                    ))
+                
+                conn.commit()
+                return True
+            except Exception as e:
+                print(f"❌ Error saving Confluence attachments for {page_url}: {e}")
+                conn.rollback()
+                return False
+            finally:
+                conn.close()
+    
+    def get_confluence_metadata(self, url: str) -> Optional[dict]:
+        """
+        Get Confluence metadata for a specific URL
+        
+        Args:
+            url: Page URL
+            
+        Returns:
+            Dictionary with metadata or None if not found
+        """
+        with self.db_lock:
+            conn = sqlite3.connect(self.db_path)
+            try:
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM confluence_metadata WHERE url = ?", (url,))
+                row = cursor.fetchone()
+                
+                if row:
+                    columns = [description[0] for description in cursor.description]
+                    return dict(zip(columns, row))
+                return None
+            except Exception as e:
+                print(f"❌ Error getting Confluence metadata for {url}: {e}")
+                return None
+            finally:
+                conn.close()
+    
+    def get_confluence_attachments(self, page_url: str) -> list:
+        """
+        Get all attachments for a Confluence page
+        
+        Args:
+            page_url: Parent page URL
+            
+        Returns:
+            List of attachment dictionaries
+        """
+        with self.db_lock:
+            conn = sqlite3.connect(self.db_path)
+            try:
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM confluence_attachments WHERE page_url = ?", (page_url,))
+                rows = cursor.fetchall()
+                
+                if rows:
+                    columns = [description[0] for description in cursor.description]
+                    return [dict(zip(columns, row)) for row in rows]
+                return []
+            except Exception as e:
+                print(f"❌ Error getting Confluence attachments for {page_url}: {e}")
+                return []
+            finally:
+                conn.close()
+    
+    def get_confluence_pages_by_space(self, space_key: str) -> list:
+        """
+        Get all Confluence pages for a specific space
+        
+        Args:
+            space_key: Space key (e.g., 'AR')
+            
+        Returns:
+            List of page metadata dictionaries
+        """
+        with self.db_lock:
+            conn = sqlite3.connect(self.db_path)
+            try:
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM confluence_metadata WHERE space_key = ?", (space_key,))
+                rows = cursor.fetchall()
+                
+                if rows:
+                    columns = [description[0] for description in cursor.description]
+                    return [dict(zip(columns, row)) for row in rows]
+                return []
+            except Exception as e:
+                print(f"❌ Error getting Confluence pages for space {space_key}: {e}")
+                return []
             finally:
                 conn.close()
 

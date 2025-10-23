@@ -32,6 +32,30 @@ website:
     - "/api/"
 
 # ============================================================================
+# CONFLUENCE API MODE (NEW!)
+# ============================================================================
+# The crawler automatically detects Confluence sites and switches to API mode
+# when credentials are available in config/.env
+#
+# To enable Confluence API mode:
+# 1. Create config/.env file (use config/.env.template as reference)
+# 2. Add your Confluence credentials:
+#    CONFLUENCE_BASE_URL=https://your-instance.atlassian.net
+#    CONFLUENCE_EMAIL=your-email@example.com
+#    CONFLUENCE_TOKEN=your_api_token_here
+#
+# Benefits of API mode:
+# - Extracts 33+ metadata fields (versions, authors, history, labels)
+# - Downloads all attachments automatically
+# - Generates YAML metadata files
+# - More accurate content extraction
+# - Better performance with pagination
+#
+# Fallback: If no credentials are found, the crawler uses HTML mode
+#
+# See docs/CONFLUENCE_API_MODE.md for complete setup guide
+
+# ============================================================================
 # CRAWLING PARAMETERS
 # ============================================================================
 crawling:
@@ -137,6 +161,27 @@ content:
     - "woff"
     - "woff2"
     - "ttf"
+  
+  # ---- Confluence API Mode Settings ----
+  # These settings apply when using Confluence API crawler
+  
+  # Whether to download page attachments (Confluence API mode only)
+  download_attachments: true
+  
+  # Whether to rewrite attachment URLs to local paths in HTML
+  rewrite_attachment_urls: true
+  
+  # Whether to save raw JSON API responses (for debugging)
+  save_json: false
+  
+  # Whether to save YAML metadata files (recommended)
+  save_yaml: true
+  
+  # Whether to follow child pages (nested pages in Confluence)
+  follow_child_pages: true
+  
+  # Maximum attachment size in MB (0 = no limit)
+  max_attachment_size: 100
 
 # ============================================================================
 # LOGGING CONFIGURATION

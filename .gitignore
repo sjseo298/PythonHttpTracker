@@ -46,6 +46,8 @@ Thumbs.db
 # Project specific
 config/config.yml
 config/cookies.txt
+config/.env
+.env
 download_progress.json
 downloaded_content/
 !downloaded_content/.gitkeep

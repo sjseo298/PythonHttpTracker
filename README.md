@@ -4,7 +4,31 @@
 ![Python](https://img.shields.io/badge/python-3.8+-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-yellow.svg)
 
-A high-performance, configurable web crawler for mirroring websites with parallel processing, intelligent link conversion, SQLite database tracking, and automatic dependency management.
+A high-performance, configurable web crawler for mirroring websites with parallel processing, intelligent link conversion, SQLite database tracking, and **automatic Confluence API mode** with full metadata extraction.
+
+## 🆕 NEW: Confluence API Mode
+
+The crawler now **automatically detects Confluence sites** and switches to API-based crawling when credentials are available:
+
+- **📋 33+ Metadata Fields**: Versions, history, authors, contributors, labels, restrictions
+- **📎 Attachment Downloads**: Automatic download and URL rewriting
+- **🎯 Accurate Content**: Direct from Confluence REST API
+- **🔄 Automatic Fallback**: Uses HTML mode if no credentials
+- **📄 YAML Metadata**: Compatible with bash script format
+
+**Quick Setup:**
+```bash
+# 1. Create credentials file
+cp config/.env.template config/.env
+
+# 2. Add your Confluence API token
+# Edit config/.env with your token
+
+# 3. Run normally - API mode activates automatically!
+python src/web_crawler.py
+```
+
+📚 **[Full Confluence API Guide](docs/CONFLUENCE_API_MODE.md)**
 
 ## 🚀 Features
 
